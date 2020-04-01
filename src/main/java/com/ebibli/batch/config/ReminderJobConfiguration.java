@@ -3,7 +3,9 @@ package com.ebibli.batch.config;
 import com.ebibli.batch.processor.ReminderJobProcessor;
 import com.ebibli.batch.reader.ReminderJobReader;
 import com.ebibli.batch.writer.ReminderJobWriter;
+import com.ebibli.domain.Emprunteur;
 import com.ebibli.dto.UtilisateurDto;
+import com.ebibli.service.LivreService;
 import com.ebibli.service.UtilisateurService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
@@ -39,6 +41,8 @@ public class ReminderJobConfiguration extends DefaultBatchConfigurer {
     private JobLauncher jobLauncher;
     @Autowired
     private UtilisateurService utilisateurService;
+    @Autowired
+    private LivreService livreService;
 
 
     @Bean
@@ -49,8 +53,8 @@ public class ReminderJobConfiguration extends DefaultBatchConfigurer {
 
     @StepScope
     @Bean
-    public ItemProcessor<UtilisateurDto, UtilisateurDto> processor() {
-        return new ReminderJobProcessor();
+    public ItemProcessor<UtilisateurDto, Emprunteur> processor(LivreService livreService) {
+        return new ReminderJobProcessor(livreService);
     }
 
     @Bean
@@ -73,10 +77,10 @@ public class ReminderJobConfiguration extends DefaultBatchConfigurer {
     public Step firstStep(
             StepBuilderFactory stepBuilderFactory,
             ReminderJobWriter itemWriter,
-            ItemProcessor<UtilisateurDto, UtilisateurDto> itemProcessor) {
+            ItemProcessor<UtilisateurDto, Emprunteur> itemProcessor) {
         return stepBuilderFactory.get("step1")
                 //.transactionManager(jpaTransactionManager(datasource))
-                .<UtilisateurDto, UtilisateurDto>chunk(reminderJobProperties.getChunkSize())
+                .<UtilisateurDto, Emprunteur>chunk(reminderJobProperties.getChunkSize())
                 .faultTolerant()
                 .skip(ValidationException.class)
                 .skipLimit(reminderJobProperties.getSkipLimit())

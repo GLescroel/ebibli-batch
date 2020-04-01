@@ -16,9 +16,11 @@ public class Main {
     }
 
     private void runAsJavaApplication(String[] args) {
+        LOGGER.info("*********** Démarrage du batch ***********");
         SpringApplicationBuilder application = new SpringApplicationBuilder();
         application.sources(Main.class);
         application.run(args);
-        LOGGER.info("L'application a démarré...");
+        LOGGER.info("*********** Batch terminé ***********");
+        System.exit(0);
     }
 }
