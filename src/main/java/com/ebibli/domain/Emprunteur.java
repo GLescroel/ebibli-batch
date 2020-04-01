@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Builder
@@ -19,5 +20,13 @@ public class Emprunteur {
     private String nom;
     private String prenom;
     private String email;
-    List<LivreDto> emprunts;
+    List<LivreDto> emprunts = new ArrayList<>();
+    List<LivreDto> empruntsRetard = new ArrayList<>();
+
+    public void addEmprunt(LivreDto emprunt) {
+        emprunts.add(emprunt);
+    }
+    public void addEmpruntRetard(LivreDto emprunt) {
+        empruntsRetard.add(emprunt);
+    }
 }

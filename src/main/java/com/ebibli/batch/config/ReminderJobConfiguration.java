@@ -3,7 +3,6 @@ package com.ebibli.batch.config;
 import com.ebibli.batch.processor.ReminderJobProcessor;
 import com.ebibli.batch.reader.ReminderJobReader;
 import com.ebibli.batch.writer.ReminderJobWriter;
-import com.ebibli.domain.Emprunteur;
 import com.ebibli.dto.UtilisateurDto;
 import com.ebibli.service.LivreService;
 import com.ebibli.service.UtilisateurService;
@@ -30,20 +29,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
+
 @EnableBatchProcessing
 @Configuration
 public class ReminderJobConfiguration extends DefaultBatchConfigurer {
 
     @Autowired
     private ReminderJobProperties reminderJobProperties;
-
+    @Autowired
+    private EmailConfiguration emailConfiguration;
     @Autowired
     private JobLauncher jobLauncher;
     @Autowired
     private UtilisateurService utilisateurService;
-    @Autowired
-    private LivreService livreService;
 
+    @Bean
+    public Session getSession() {
+        return new SessionConfiguration(emailConfiguration).configure();
+    }
 
     @Bean
     @JobScope
@@ -53,14 +58,14 @@ public class ReminderJobConfiguration extends DefaultBatchConfigurer {
 
     @StepScope
     @Bean
-    public ItemProcessor<UtilisateurDto, Emprunteur> processor(LivreService livreService) {
-        return new ReminderJobProcessor(livreService);
+    public ItemProcessor<UtilisateurDto, MimeMessage> processor(LivreService livreService, Session session) {
+        return new ReminderJobProcessor(livreService, getSession());
     }
 
     @Bean
     @StepScope
     public ReminderJobWriter itemWriter() {
-        return new ReminderJobWriter();
+        return new ReminderJobWriter(emailConfiguration.javaMailSender());
     }
 
     @Bean
@@ -69,7 +74,6 @@ public class ReminderJobConfiguration extends DefaultBatchConfigurer {
                 .incrementer(new RunIdIncrementer())
                 .flow(firstStep)
                 .end()
-                //.listener(applicationJobExecutionListener())
                 .build();
     }
 
@@ -77,17 +81,15 @@ public class ReminderJobConfiguration extends DefaultBatchConfigurer {
     public Step firstStep(
             StepBuilderFactory stepBuilderFactory,
             ReminderJobWriter itemWriter,
-            ItemProcessor<UtilisateurDto, Emprunteur> itemProcessor) {
+            ItemProcessor<UtilisateurDto, MimeMessage> itemProcessor) {
         return stepBuilderFactory.get("step1")
-                //.transactionManager(jpaTransactionManager(datasource))
-                .<UtilisateurDto, Emprunteur>chunk(reminderJobProperties.getChunkSize())
+                .<UtilisateurDto, MimeMessage>chunk(reminderJobProperties.getChunkSize())
                 .faultTolerant()
                 .skip(ValidationException.class)
                 .skipLimit(reminderJobProperties.getSkipLimit())
                 .reader(itemReader())
                 .processor(itemProcessor)
                 .writer(itemWriter)
-                //.listener(new ApplicationProcessListener(applicationProperties.getOutputPath()))
                 .build();
     }
 
