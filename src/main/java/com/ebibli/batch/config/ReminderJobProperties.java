@@ -14,6 +14,9 @@ public class ReminderJobProperties {
     @Value("${batch.reminder.skip-limit}")
     private int skipLimit;
 
+    @Value("${batch.reminder.reportPath}")
+    private String reportPath;
+
     public int getChunkSize() {
         return chunkSize;
     }
@@ -29,4 +32,8 @@ public class ReminderJobProperties {
     public void setSkipLimit(int skipLimit) {
         this.skipLimit = skipLimit;
     }
+
+    public String getReportPath() { return reportPath; }
+
+    public void setReportPath(String reportFile) { this.reportPath = reportPath; }
 }

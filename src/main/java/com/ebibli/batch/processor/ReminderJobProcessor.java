@@ -28,6 +28,12 @@ public class ReminderJobProcessor implements ItemProcessor<UtilisateurDto, MimeM
         this.session = session;
     }
 
+    /**
+     * Identification des utilisateurs à relancer et création du message
+     * @param utilisateur
+     * @return le MimeMessage à envoyer à l'utilisateur ayant des prêts en retard, null sinon
+     * @throws Exception
+     */
     @Override
     public MimeMessage process(UtilisateurDto utilisateur) throws Exception {
         LOGGER.info("process : " + utilisateur.getEmail());
@@ -68,6 +74,11 @@ public class ReminderJobProcessor implements ItemProcessor<UtilisateurDto, MimeM
         return null;
     }
 
+    /**
+     * Rédaction du corps du message
+     * @param emprunteur
+     * @return le corps texte du message
+     */
     private String writeMessage(Emprunteur emprunteur) {
         String text = String.format("Bonjour %s %s,\n\n", emprunteur.getPrenom(), emprunteur.getNom());
         text += "La date de retour des livres suivants est dépassée :\n";

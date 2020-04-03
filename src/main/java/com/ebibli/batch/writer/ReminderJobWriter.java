@@ -19,16 +19,14 @@ public class ReminderJobWriter extends MimeMessageItemWriter {
         this.sender = sender;
     }
 
+    /**
+     * Envoi des messages aux utilisateurs identifiés en retard
+     * @param list
+     */
     public void write(List<? extends MimeMessage> list) {
         LOGGER.info("dans ReminderJobWriter");
 
         for (MimeMessage message : list) {
-            try {
-                LOGGER.info("Envoi email à " + message.getRecipients(Message.RecipientType.TO).toString());
-            } catch (MessagingException e) {
-                e.printStackTrace();
-            }
-
             sender.send(message);
         }
     }

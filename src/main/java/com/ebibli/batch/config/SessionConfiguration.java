@@ -12,6 +12,9 @@ public class SessionConfiguration {
         this.emailConfiguration = emailConfiguration;
     }
 
+    /**
+     * Configuration de la Session attendue par les MimeMessage
+     */
     public Session configure() {
 
         Properties props = new Properties();
