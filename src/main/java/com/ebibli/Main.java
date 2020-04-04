@@ -5,9 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 
 @SpringBootApplication
 @EnableScheduling
@@ -19,10 +17,9 @@ public class Main {
         runMyApp();
     }
 
-    @Scheduled(cron = "${batch.cron.value}")
     private static void runMyApp() {
-        final ConfigurableApplicationContext context = SpringApplication.run(Main.class);
-        SpringApplication.exit(context);
+        LOGGER.info("*********** Démarrage du batch ***********");
+        SpringApplication.run(Main.class);
         LOGGER.info("*********** Batch terminé ***********");
     }
 }

@@ -5,8 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.mail.javamail.MimeMessageItemWriter;
 import org.springframework.mail.javamail.JavaMailSender;
 
-import javax.mail.Message;
-import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.util.List;
 
@@ -23,6 +21,7 @@ public class ReminderJobWriter extends MimeMessageItemWriter {
      * Envoi des messages aux utilisateurs identifiés en retard
      * @param list
      */
+    @Override
     public void write(List<? extends MimeMessage> list) {
         LOGGER.info("dans ReminderJobWriter");
 
