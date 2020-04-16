@@ -18,4 +18,8 @@ public class LivreService {
     public List<LivreDto> getAllEmpruntsByUtilisateur(Integer utilisateurId) {
         return biblioClients.getAllEmpruntsByUtilisateur(utilisateurId);
     }
+
+    public List getAllLivresEnRetard() {
+        return biblioClients.getAllEmpruntsLate();
+    }
 }

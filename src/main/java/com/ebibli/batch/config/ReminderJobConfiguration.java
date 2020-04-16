@@ -5,9 +5,9 @@ import com.ebibli.batch.processor.ReminderJobProcessor;
 import com.ebibli.batch.reader.ReminderJobReader;
 import com.ebibli.batch.writer.ReminderJobExecutionWriter;
 import com.ebibli.batch.writer.ReminderJobWriter;
+import com.ebibli.dto.LivreDto;
 import com.ebibli.dto.UtilisateurDto;
 import com.ebibli.service.LivreService;
-import com.ebibli.service.UtilisateurService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.JobParameters;
@@ -30,6 +30,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
+import java.util.ArrayList;
+import java.util.List;
 
 @EnableBatchProcessing
 @Configuration
@@ -44,7 +46,10 @@ public class ReminderJobConfiguration extends DefaultBatchConfigurer {
     @Autowired
     private Job job;
     @Autowired
-    private UtilisateurService utilisateurService;
+    private LivreService livreService;
+
+    private List<UtilisateurDto> emprunteursRelances = new ArrayList<>();
+
 
     @Bean
     public Session getSession() {
@@ -53,13 +58,13 @@ public class ReminderJobConfiguration extends DefaultBatchConfigurer {
 
     @Bean
     @JobScope
-    public ListItemReader<UtilisateurDto> itemReader() {
-        return new ReminderJobReader(utilisateurService.getAllUtilisateur());
+    public ListItemReader<LivreDto> itemReader() {
+        return new ReminderJobReader(livreService.getAllLivresEnRetard());
     }
 
     @StepScope
     @Bean
-    public ItemProcessor<UtilisateurDto, MimeMessage> processor(LivreService livreService) {
+    public ItemProcessor<LivreDto, MimeMessage> processor(LivreService livreService) {
         return new ReminderJobProcessor(livreService, getSession());
     }
 
@@ -89,9 +94,9 @@ public class ReminderJobConfiguration extends DefaultBatchConfigurer {
     public Step firstStep(
             StepBuilderFactory stepBuilderFactory,
             ReminderJobWriter itemWriter,
-            ItemProcessor<UtilisateurDto, MimeMessage> itemProcessor) {
+            ItemProcessor<LivreDto, MimeMessage> itemProcessor) {
         return stepBuilderFactory.get("step1")
-                .<UtilisateurDto, MimeMessage>chunk(reminderJobProperties.getChunkSize())
+                .<LivreDto, MimeMessage>chunk(reminderJobProperties.getChunkSize())
                 .reader(itemReader())
                 .processor(itemProcessor)
                 .writer(itemWriter)

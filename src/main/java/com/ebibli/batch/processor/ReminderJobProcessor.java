@@ -15,13 +15,15 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 
-public class ReminderJobProcessor implements ItemProcessor<UtilisateurDto, MimeMessage> {
+public class ReminderJobProcessor implements ItemProcessor<LivreDto, MimeMessage> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReminderJobProcessor.class);
 
     private final LivreService livreService;
     private final Session session;
+    private List<UtilisateurDto> emprunteursRelances = new ArrayList<>();
 
     public ReminderJobProcessor(LivreService livreService, Session session) {
         this.livreService = livreService;
@@ -30,22 +32,28 @@ public class ReminderJobProcessor implements ItemProcessor<UtilisateurDto, MimeM
 
     /**
      * Identification des utilisateurs à relancer et création du message
-     * @param utilisateur
+     * @param empruntEnRetard
      * @return le MimeMessage à envoyer à l'utilisateur ayant des prêts en retard, null sinon
      * @throws Exception
      */
     @Override
-    public MimeMessage process(UtilisateurDto utilisateur) throws Exception {
-        LOGGER.info("process : " + utilisateur.getEmail());
+    public MimeMessage process(LivreDto empruntEnRetard) throws Exception {
 
-        List<LivreDto> emprunts = livreService.getAllEmpruntsByUtilisateur(utilisateur.getId());
+        for (UtilisateurDto emprunteur : emprunteursRelances) {
+            if(emprunteur.getId() == empruntEnRetard.getEmprunteur().getId()) {
+                return null;
+            }
+        }
+        emprunteursRelances.add(empruntEnRetard.getEmprunteur());
+
+        List<LivreDto> emprunts = livreService.getAllEmpruntsByUtilisateur(empruntEnRetard.getEmprunteur().getId());
 
         if (!emprunts.isEmpty()) {
-            LOGGER.info(String.format("emprunteur : %s", utilisateur.getEmail()));
+            LOGGER.info(String.format("emprunteur : %s", empruntEnRetard.getEmprunteur().getEmail()));
             Emprunteur emprunteur = new Emprunteur();
-            emprunteur.setEmail(utilisateur.getEmail());
-            emprunteur.setNom(utilisateur.getNom());
-            emprunteur.setPrenom(utilisateur.getPrenom());
+            emprunteur.setEmail(empruntEnRetard.getEmprunteur().getEmail());
+            emprunteur.setNom(empruntEnRetard.getEmprunteur().getNom());
+            emprunteur.setPrenom(empruntEnRetard.getEmprunteur().getPrenom());
 
             for (LivreDto emprunt : emprunts) {
                 if (emprunt.getDateRetourPrevu().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isBefore(LocalDate.now())) {
