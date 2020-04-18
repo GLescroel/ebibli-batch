@@ -1,7 +1,9 @@
 package com.ebibli.infrastructure.rest;
 
 
-import com.ebibli.domain.BiblioClients;
+import com.ebibli.domain.EmpruntClient;
+import com.ebibli.infrastructure.rest.emprunt.EmpruntClientApi;
+import com.ebibli.infrastructure.rest.emprunt.RestEmpruntClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 public class RestConfig {
 
     @Bean
-    public BiblioClients restBiblios(BiblioClientApi biblioClientApi) {
-        return new RestBiblioClients(biblioClientApi);
+    public EmpruntClient restBiblios(EmpruntClientApi empruntClientApi) {
+        return new RestEmpruntClient(empruntClientApi);
     }
 }

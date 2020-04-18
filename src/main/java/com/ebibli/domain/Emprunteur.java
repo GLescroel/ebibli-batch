@@ -1,6 +1,6 @@
 package com.ebibli.domain;
 
-import com.ebibli.dto.LivreDto;
+import com.ebibli.dto.EmpruntDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,13 +20,13 @@ public class Emprunteur {
     private String nom;
     private String prenom;
     private String email;
-    List<LivreDto> emprunts = new ArrayList<>();
-    List<LivreDto> empruntsRetard = new ArrayList<>();
+    List<EmpruntDto> emprunts = new ArrayList<>();
+    List<EmpruntDto> empruntsRetard = new ArrayList<>();
 
-    public void addEmprunt(LivreDto emprunt) {
+    public void addEmprunt(EmpruntDto emprunt) {
         emprunts.add(emprunt);
     }
-    public void addEmpruntRetard(LivreDto emprunt) {
+    public void addEmpruntRetard(EmpruntDto emprunt) {
         empruntsRetard.add(emprunt);
     }
 }

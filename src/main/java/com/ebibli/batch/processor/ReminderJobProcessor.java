@@ -1,9 +1,9 @@
 package com.ebibli.batch.processor;
 
 import com.ebibli.domain.Emprunteur;
-import com.ebibli.dto.LivreDto;
+import com.ebibli.dto.EmpruntDto;
 import com.ebibli.dto.UtilisateurDto;
-import com.ebibli.service.LivreService;
+import com.ebibli.service.EmpruntService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
@@ -13,20 +13,18 @@ import javax.mail.Message;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReminderJobProcessor implements ItemProcessor<LivreDto, MimeMessage> {
+public class ReminderJobProcessor implements ItemProcessor<EmpruntDto, MimeMessage> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReminderJobProcessor.class);
 
-    private final LivreService livreService;
+    private final EmpruntService empruntService;
     private final Session session;
     private List<UtilisateurDto> emprunteursRelances = new ArrayList<>();
 
-    public ReminderJobProcessor(LivreService livreService, Session session) {
-        this.livreService = livreService;
+    public ReminderJobProcessor(EmpruntService empruntService, Session session) {
+        this.empruntService = empruntService;
         this.session = session;
     }
 
@@ -37,7 +35,7 @@ public class ReminderJobProcessor implements ItemProcessor<LivreDto, MimeMessage
      * @throws Exception
      */
     @Override
-    public MimeMessage process(LivreDto empruntEnRetard) throws Exception {
+    public MimeMessage process(EmpruntDto empruntEnRetard) throws Exception {
 
         for (UtilisateurDto emprunteur : emprunteursRelances) {
             if(emprunteur.getId() == empruntEnRetard.getEmprunteur().getId()) {
@@ -46,7 +44,7 @@ public class ReminderJobProcessor implements ItemProcessor<LivreDto, MimeMessage
         }
         emprunteursRelances.add(empruntEnRetard.getEmprunteur());
 
-        List<LivreDto> emprunts = livreService.getAllEmpruntsByUtilisateur(empruntEnRetard.getEmprunteur().getId());
+        List<EmpruntDto> emprunts = empruntService.getAllEmpruntsEnCoursByUtilisateur(empruntEnRetard.getEmprunteur().getId());
 
         if (!emprunts.isEmpty()) {
             LOGGER.info(String.format("emprunteur : %s", empruntEnRetard.getEmprunteur().getEmail()));
@@ -55,8 +53,8 @@ public class ReminderJobProcessor implements ItemProcessor<LivreDto, MimeMessage
             emprunteur.setNom(empruntEnRetard.getEmprunteur().getNom());
             emprunteur.setPrenom(empruntEnRetard.getEmprunteur().getPrenom());
 
-            for (LivreDto emprunt : emprunts) {
-                if (emprunt.getDateRetourPrevu().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isBefore(LocalDate.now())) {
+            for (EmpruntDto emprunt : emprunts) {
+                if (emprunt.getEnRetard() == true) {
                     emprunteur.addEmpruntRetard(emprunt);
                 } else {
                     emprunteur.addEmprunt(emprunt);
@@ -90,13 +88,19 @@ public class ReminderJobProcessor implements ItemProcessor<LivreDto, MimeMessage
     private String writeMessage(Emprunteur emprunteur) {
         String text = String.format("Bonjour %s %s,\n\n", emprunteur.getPrenom(), emprunteur.getNom());
         text += "La date de retour des livres suivants est dépassée :\n";
-        for (LivreDto livre : emprunteur.getEmpruntsRetard()) {
-            text += String.format("- %s attendu le %s à la biliothèque : %s\n", livre.getOuvrage().getTitre(), livre.getDateRetourPrevu().toString(), livre.getBibliotheque().getNom());
+        for (EmpruntDto emprunt : emprunteur.getEmpruntsRetard()) {
+            text += String.format("- %s attendu le %s à la biliothèque : %s\n",
+                    emprunt.getLivre().getOuvrage().getTitre(),
+                    emprunt.getDateRetourPrevu().toString(),
+                    emprunt.getLivre().getBibliotheque().getNom());
         }
         if (!emprunteur.getEmprunts().isEmpty()) {
             text += "Nous vous rappelons vos autres emprunts en cours :\n";
-            for (LivreDto livre : emprunteur.getEmprunts()) {
-                text += String.format("- %s attendu le %s à la biliothèque : %s", livre.getOuvrage().getTitre(), livre.getDateRetourPrevu().toString(), livre.getBibliotheque().getNom());
+            for (EmpruntDto emprunt : emprunteur.getEmprunts()) {
+                text += String.format("- %s attendu le %s à la biliothèque : %s",
+                        emprunt.getLivre().getOuvrage().getTitre(),
+                        emprunt.getDateRetourPrevu().toString(),
+                        emprunt.getLivre().getBibliotheque().getNom());
             }
         }
         return text;
