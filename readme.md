@@ -3,7 +3,7 @@ eBibli-batch
 Application batch du système d'information des bibliothèques de la ville.
 Ce batch quotidien (fréquence paramétrable dans le cron du fichier application.properties) envoie des emails aux usagers ayant des emprunts en retard de restitution.
 
-Ce client Rest interroge le backend qui expose des API Rest sur l'url http://localhost:8081 paramétrable dans le fichier application.properties
+Ce client Rest interroge les microservices du backend qui expose des API Rest sur les url http://localhost:9001 à 9006 paramétrables dans le fichier application.properties
 
 Pré-requis technique :
 
@@ -23,9 +23,9 @@ mvn clean package : le fichier ebibli-batch-1.0.jar qui contient l'application e
 Il est maintenant possible de lancer l'application directement dans votre IDE en exécutant le Main
 ou en ligne de commande (application standalone intégrant un conteneur web grace à SpringBoot) : mvn clean install spring-boot:run
 
-Le port de l'Application est paramétré dans application.propertie : http://localhost:8082/
-
 Le backend (https://github.com/GLescroel/ebibli-backend) doit avoir été lancé préalablement
+
+Le port de l'Application est paramétré dans application.propertie : http://localhost:8082/
 
 Documentation : la javadoc peut être générée via la commande mvn javadoc:javadoc puis consultée à partir de la page \target\site\apidocs\index.html
 
